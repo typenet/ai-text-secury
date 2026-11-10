@@ -20,6 +20,7 @@ class S3Storage:
 
         s = get_settings()
         self.bucket = s.s3_bucket
+        self.sse = s.s3_sse or None
         self.client = boto3.client(
             "s3",
             endpoint_url=s.s3_endpoint_url or None,
@@ -29,13 +30,26 @@ class S3Storage:
         )
 
     def put(self, key: str, data: bytes, content_type: str) -> None:
+        extra = {"ServerSideEncryption": self.sse} if self.sse else {}
         self.client.put_object(
-            Bucket=self.bucket,
-            Key=key,
-            Body=data,
-            ContentType=content_type,
-            ServerSideEncryption="AES256",
+            Bucket=self.bucket, Key=key, Body=data, ContentType=content_type, **extra
         )
+
+    def ensure_bucket(self) -> bool:
+        """Cria o bucket se não existir. Retorna True quando criou."""
+        from botocore.exceptions import ClientError
+
+        try:
+            self.client.head_bucket(Bucket=self.bucket)
+            return False
+        except ClientError as exc:
+            if exc.response.get("Error", {}).get("Code") not in ("404", "NoSuchBucket"):
+                raise
+        self.client.create_bucket(Bucket=self.bucket)
+        return True
+
+    def ping(self) -> None:
+        self.client.head_bucket(Bucket=self.bucket)
 
     def get(self, key: str) -> bytes:
         return self.client.get_object(Bucket=self.bucket, Key=key)["Body"].read()

@@ -1,0 +1,55 @@
+# Produção (VPS). Uso:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Só o Caddy publica portas (80/443) e emite o certificado HTTPS sozinho para DOMAIN.
+# Banco, Redis e storage ficam apenas na rede interna do Docker.
+x-prod-env: &prod-env
+  ENVIRONMENT: production
+  DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-secury}:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@postgres:5432/${POSTGRES_DB:-secury}
+
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+
+  storage:
+    environment:
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY:?defina S3_ACCESS_KEY no .env}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_KEY:?defina S3_SECRET_KEY no .env}
+      RUSTFS_SSE_S3_MASTER_KEY: ${STORAGE_SSE_MASTER_KEY:?defina STORAGE_SSE_MASTER_KEY no .env}
+      RUSTFS_CONSOLE_ENABLE: "false" # painel desligado em prod; use túnel SSH se precisar
+
+  migrate:
+    environment: *prod-env
+  api:
+    environment: *prod-env
+  worker:
+    environment: *prod-env
+
+  web:
+    build:
+      args:
+        # Vazio = o navegador chama a API no mesmo domínio (o Caddy roteia /v1 para a API)
+        NEXT_PUBLIC_API_URL: ""
+
+  caddy:
+    image: caddy:2.10-alpine
+    environment:
+      DOMAIN: ${DOMAIN:?defina DOMAIN no .env, ex. app.seudominio.com.br}
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "5" }
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+
+volumes:
+  caddydata:
+  caddyconfig:

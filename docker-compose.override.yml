@@ -1,0 +1,13 @@
+# Dev local: carregado automaticamente por "docker compose up".
+# Publica as portas só em 127.0.0.1 (não fica exposto na rede).
+services:
+  postgres:
+    ports: ["127.0.0.1:5432:5432"]
+  redis:
+    ports: ["127.0.0.1:6379:6379"]
+  storage:
+    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"] # 9001 = painel web do storage
+  api:
+    ports: ["127.0.0.1:8000:8000"]
+  web:
+    ports: ["127.0.0.1:3000:3000"]

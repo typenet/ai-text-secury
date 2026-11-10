@@ -21,7 +21,7 @@ O que detecta hoje:
 | API | Python 3.13, FastAPI, SQLAlchemy 2, Alembic |
 | Fila | Celery + Redis |
 | Banco | PostgreSQL (findings com `evidence` em JSONB) |
-| Arquivos | MinIO local, S3 em produção (boto3) |
+| Arquivos | Storage S3 local (RustFS) no dev e na VPS, ou S3 gerenciado (boto3) |
 | PDF | pdfplumber + pikepdf (sem PyMuPDF por ser AGPL), pypdfium2 para render |
 | DOCX | lxml direto no XML |
 | OCR | Tesseract `por+eng`, só nas páginas suspeitas |
@@ -30,14 +30,33 @@ O que detecta hoje:
 ## Subir local
 
 ```bash
-cp .env.example .env
-make up            # postgres, redis, minio, migrações, api, worker e web
-make bootstrap     # cria organização, projeto e imprime uma API key
+make up            # cria o .env, sobe postgres, redis, storage, migrações, api, worker e web
+make ps            # todos devem ficar "healthy"
 ```
 
+Na subida, o serviço `migrate` aplica as migrações, sincroniza as regras, cria o bucket e
+cadastra a API key de `BOOTSTRAP_API_KEY` (no dev: `ats_dev_local_somente_para_testes`).
+Tudo é idempotente: pode subir e derrubar à vontade.
+
 - API e docs OpenAPI: http://localhost:8000/docs
+- Prontidão (banco, Redis, storage): http://localhost:8000/health/ready
 - Web: http://localhost:3000 (cole a API key no formulário)
-- Console do MinIO: http://localhost:9001
+- Painel do storage: http://localhost:9001 (usuário/senha = `S3_ACCESS_KEY`/`S3_SECRET_KEY`)
+
+Mais uma API key: `make api-key ORG="Cliente X"`.
+
+Arquivos do Docker:
+
+| Arquivo | Para quê |
+| --- | --- |
+| `docker-compose.yml` | base comum, sem portas publicadas, com healthchecks e volumes |
+| `docker-compose.override.yml` | dev: carregado sozinho, publica as portas só em 127.0.0.1 |
+| `docker-compose.prod.yml` | VPS: Caddy com HTTPS, segredos obrigatórios |
+
+## Deploy em VPS
+
+Passo a passo em [`docs/deploy-vps.md`](docs/deploy-vps.md): preparar a VPS, configurar o
+`.env`, `make prod-up`, backup (`make backup`) e quando trocar o storage local por S3.
 
 Exemplo pela API:
 
@@ -73,7 +92,7 @@ backend/
       pdf.py docx.py txt.py   extratores + regras estruturais
       unicode.py metadata.py ocr.py injection.py lgpd.py
       rules.py      catálogo de regras    report.py  score e relatório
-    services/       storage S3/MinIO e execução do scan
+    services/       storage S3 (RustFS/S3) e execução do scan
     worker/         Celery
   alembic/          migrações
 frontend/
