@@ -3,7 +3,7 @@
 ## Fluxo de um scan
 
 ```
-cliente ──POST /v1/scans──▶ API ──▶ MinIO/S3 (arquivo, criptografado em repouso)
+cliente ──POST /v1/scans──▶ API ──▶ storage S3 (arquivo, criptografado em repouso)
                              │
                              ├──▶ Postgres: documents + scans (status=queued)
                              └──▶ Redis ──▶ worker Celery

@@ -19,9 +19,17 @@ class Settings(BaseSettings):
     s3_secret_key: str = "minioadmin"
     s3_region: str = "us-east-1"
     s3_bucket: str = "documents"
+    # Criptografia no servidor (SSE-S3). Vazio desliga, p.ex. em storages sem suporte.
+    s3_sse: str | None = "AES256"
 
     max_upload_mb: int = 50
     cors_origins: list[str] = ["http://localhost:3000"]
+
+    # Seed automático (python -m app.cli setup, rodado pelo serviço migrate do compose).
+    # Com BOOTSTRAP_API_KEY definida, essa chave é cadastrada; vazia, uma chave é gerada
+    # e impressa no log só se ainda não existir nenhuma.
+    bootstrap_org: str = "Dev"
+    bootstrap_api_key: str | None = None
 
     # Executa o scan na própria requisição (útil para testes e desenvolvimento sem worker).
     scan_eager: bool = False
