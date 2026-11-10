@@ -1,0 +1,57 @@
+[project]
+name = "ai-text-secury"
+version = "0.1.0"
+description = "AI Document Security: detecta texto oculto, prompt injection e dados sensíveis em documentos antes de chegarem a IA/RAG."
+requires-python = ">=3.13"
+license = { text = "Proprietary" }
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "python-multipart>=0.0.12",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.6",
+  "sqlalchemy>=2.0.36",
+  "alembic>=1.14",
+  "psycopg[binary]>=3.2",
+  "celery[redis]>=5.4",
+  "boto3>=1.35",
+  # Parsing de documentos (evitar PyMuPDF: AGPL)
+  "pdfplumber>=0.11",
+  "pikepdf>=9.4",
+  "lxml>=5.3",
+  # Render + OCR (usado só nas páginas suspeitas)
+  "pypdfium2>=4.30",
+  "pytesseract>=0.3.13",
+  "pillow>=11.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "httpx>=0.27",
+  "ruff>=0.8",
+  "python-docx>=1.1",
+  "reportlab>=4.2",
+]
+ml = [
+  "onnxruntime>=1.20",
+  "tokenizers>=0.20",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
