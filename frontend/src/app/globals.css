@@ -2,84 +2,96 @@
 @import "tw-animate-css";
 
 /*
- * Design tokens (padrão shadcn/ui). Para trocar de design system, mude os valores
- * abaixo e/ou os componentes em src/components/ui; as páginas só usam esses tokens.
+ * Design system "AI Text Secury" — tokens.
+ * Documentação: docs/design-system.md · Vitrine ao vivo: /design
+ *
+ * Regra de ouro: páginas e componentes usam SÓ estes tokens (bg-primary, text-risk-high-fg...).
+ * Cada cor é definida uma vez com light-dark(claro, escuro); o tema segue o sistema
+ * e pode ser forçado com a classe .light ou .dark no <html> (ver ThemeToggle).
  */
-@custom-variant dark (&:is(.dark *));
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0.02 260);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0.02 260);
-  --primary: oklch(0.32 0.08 260);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.96 0.01 260);
-  --secondary-foreground: oklch(0.2 0.02 260);
-  --muted: oklch(0.96 0.01 260);
-  --muted-foreground: oklch(0.5 0.02 260);
-  --accent: oklch(0.96 0.01 260);
-  --accent-foreground: oklch(0.2 0.02 260);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.01 260);
-  --input: oklch(0.92 0.01 260);
-  --ring: oklch(0.55 0.05 260);
+  color-scheme: light dark;
 
-  /* Faixas de risco */
-  --risk-safe: oklch(0.62 0.15 150);
-  --risk-attention: oklch(0.75 0.15 85);
-  --risk-high: oklch(0.65 0.19 45);
-  --risk-critical: oklch(0.57 0.23 27);
+  --radius: 0.5rem;
+
+  /* Superfícies e texto — neutros levemente frios (tinta azul-ardósia) */
+  --background: light-dark(oklch(0.984 0.003 250), oklch(0.165 0.018 255));
+  --foreground: light-dark(oklch(0.21 0.03 258), oklch(0.95 0.008 250));
+  --card: light-dark(oklch(1 0 0), oklch(0.205 0.02 255));
+  --card-foreground: var(--foreground);
+  --muted: light-dark(oklch(0.963 0.006 250), oklch(0.245 0.02 255));
+  --muted-foreground: light-dark(oklch(0.48 0.025 255), oklch(0.72 0.02 250));
+  --border: light-dark(oklch(0.915 0.008 250), oklch(0.3 0.02 255));
+  --input: light-dark(oklch(0.88 0.01 250), oklch(0.36 0.02 255));
+
+  /* Marca: azul-tinta institucional (primary) + verde-petróleo de "verificado" (brand) */
+  --primary: light-dark(oklch(0.31 0.075 258), oklch(0.84 0.06 250));
+  --primary-foreground: light-dark(oklch(0.985 0.003 250), oklch(0.2 0.04 258));
+  --brand: light-dark(oklch(0.55 0.1 195), oklch(0.72 0.11 192));
+  --brand-foreground: light-dark(oklch(0.99 0 0), oklch(0.18 0.03 200));
+  --brand-soft: light-dark(oklch(0.96 0.025 195), oklch(0.27 0.04 200));
+
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --accent: light-dark(oklch(0.95 0.012 250), oklch(0.27 0.022 255));
+  --accent-foreground: var(--foreground);
+  --destructive: light-dark(oklch(0.55 0.2 27), oklch(0.68 0.18 24));
+  --ring: light-dark(oklch(0.55 0.1 195), oklch(0.72 0.11 192));
+
+  /*
+   * Faixas de risco (score 0-100). Cada faixa tem 3 tons:
+   *   --risk-X       cor sólida (gráficos, barras, anel do score)
+   *   --risk-X-soft  fundo suave (badges, alertas)
+   *   --risk-X-fg    texto sobre o fundo suave (contraste AA)
+   */
+  --risk-safe: light-dark(oklch(0.6 0.13 155), oklch(0.7 0.14 155));
+  --risk-safe-soft: light-dark(oklch(0.96 0.035 155), oklch(0.28 0.05 155));
+  --risk-safe-fg: light-dark(oklch(0.41 0.1 155), oklch(0.85 0.1 155));
+
+  --risk-attention: light-dark(oklch(0.77 0.15 80), oklch(0.8 0.14 82));
+  --risk-attention-soft: light-dark(oklch(0.965 0.05 88), oklch(0.3 0.05 80));
+  --risk-attention-fg: light-dark(oklch(0.47 0.1 68), oklch(0.88 0.11 85));
+
+  --risk-high: light-dark(oklch(0.66 0.17 47), oklch(0.72 0.16 50));
+  --risk-high-soft: light-dark(oklch(0.96 0.035 50), oklch(0.3 0.06 45));
+  --risk-high-fg: light-dark(oklch(0.49 0.15 42), oklch(0.86 0.1 55));
+
+  --risk-critical: light-dark(oklch(0.56 0.21 26), oklch(0.66 0.2 25));
+  --risk-critical-soft: light-dark(oklch(0.955 0.03 22), oklch(0.29 0.07 25));
+  --risk-critical-fg: light-dark(oklch(0.47 0.18 26), oklch(0.85 0.09 22));
+
+  --shadow-card: 0 1px 2px light-dark(oklch(0.21 0.03 258 / 6%), oklch(0 0 0 / 30%)),
+    0 1px 1px light-dark(oklch(0.21 0.03 258 / 4%), oklch(0 0 0 / 20%));
 }
 
-.dark {
-  --background: oklch(0.145 0.02 260);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.2 0.02 260);
-  --card-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.85 0.05 260);
-  --primary-foreground: oklch(0.2 0.02 260);
-  --secondary: oklch(0.27 0.02 260);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.27 0.02 260);
-  --muted-foreground: oklch(0.7 0.02 260);
-  --accent: oklch(0.27 0.02 260);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.55 0.05 260);
+:root.light {
+  color-scheme: light;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    --background: oklch(0.145 0.02 260);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.2 0.02 260);
-    --card-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.85 0.05 260);
-    --primary-foreground: oklch(0.2 0.02 260);
-    --secondary: oklch(0.27 0.02 260);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.27 0.02 260);
-    --muted-foreground: oklch(0.7 0.02 260);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-  }
+:root.dark {
+  color-scheme: dark;
 }
 
 @theme inline {
+  --font-sans: "IBM Plex Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-card: var(--shadow-card);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -90,17 +102,42 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
   --color-risk-safe: var(--risk-safe);
+  --color-risk-safe-soft: var(--risk-safe-soft);
+  --color-risk-safe-fg: var(--risk-safe-fg);
   --color-risk-attention: var(--risk-attention);
+  --color-risk-attention-soft: var(--risk-attention-soft);
+  --color-risk-attention-fg: var(--risk-attention-fg);
   --color-risk-high: var(--risk-high);
+  --color-risk-high-soft: var(--risk-high-soft);
+  --color-risk-high-fg: var(--risk-high-fg);
   --color-risk-critical: var(--risk-critical);
+  --color-risk-critical-soft: var(--risk-critical-soft);
+  --color-risk-critical-fg: var(--risk-critical-fg);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background font-sans text-foreground antialiased;
+    font-feature-settings: "ss02", "tnum" 0;
+  }
+  ::selection {
+    background: color-mix(in oklch, var(--brand) 25%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

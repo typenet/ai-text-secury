@@ -1,10 +1,13 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, OctagonAlert } from "lucide-react";
 
-import { RiskBadge, SeverityBadge } from "@/components/risk";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BackLink, ScanResult } from "@/components/scan-result";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getScan, type Scan } from "@/lib/api";
 
 const POLL_MS = 1500;
@@ -34,52 +37,59 @@ export default function ScanPage({ params }: { params: Promise<{ id: string }> }
     };
   }, [id]);
 
-  if (error) return <p className="text-destructive">{error}</p>;
-  if (!scan || scan.status === "queued" || scan.status === "running") {
-    return (
-      <p className="flex items-center gap-2 text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" /> Analisando documento...
-      </p>
-    );
-  }
-  if (scan.status === "failed") return <p className="text-destructive">Falha na análise: {scan.error}</p>;
+  if (error) return <ScanError title="Não foi possível carregar o scan" message={error} />;
+  if (!scan || scan.status === "queued" || scan.status === "running") return <ScanLoading scan={scan} />;
+  if (scan.status === "failed") return <ScanError title="Falha na análise" message={scan.error ?? "Erro desconhecido"} />;
+  return <ScanResult scan={scan} />;
+}
 
+function ScanLoading({ scan }: { scan: Scan | null }) {
+  const running = scan?.status === "running";
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight break-all">{scan.document.filename}</h1>
-          <p className="text-muted-foreground">
-            {scan.document.doc_type.toUpperCase()} · {scan.document.page_count ?? "?"} página(s) · engine{" "}
-            {scan.engine_version}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-4xl font-bold tabular-nums">{scan.score}</span>
-          {scan.band && <RiskBadge band={scan.band} />}
-        </div>
+    <div className="grid gap-6" aria-busy="true">
+      <BackLink />
+      <div className="grid gap-2">
+        <Skeleton className="h-7 w-2/3 max-w-md" />
+        <Skeleton className="h-4 w-1/2 max-w-xs" />
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Achados ({scan.findings.length})</CardTitle>
-          <CardDescription>Ordenados por severidade. Cada achado indica a regra, a página e o trecho.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-3">
-          {scan.findings.length === 0 && <p className="text-muted-foreground">Nenhum risco encontrado.</p>}
-          {scan.findings.map((f, i) => (
-            <div key={i} className="grid gap-1 rounded-lg border p-3">
-              <div className="flex flex-wrap items-center gap-2 text-sm">
-                <SeverityBadge severity={f.severity} />
-                <code className="font-mono">{f.rule}</code>
-                {f.page != null && <span className="text-muted-foreground">página {f.page}</span>}
-                <span className="ml-auto text-muted-foreground">confiança {f.confidence}%</span>
-              </div>
-              {f.text && <p className="text-sm break-words whitespace-pre-wrap">{f.text}</p>}
+      <Card className="py-0">
+        <div className="grid sm:grid-cols-[auto_1fr]">
+          <div className="grid place-items-center border-b p-6 sm:border-r sm:border-b-0 sm:px-10">
+            <div className="grid size-[168px] place-items-center rounded-full border-8 border-muted">
+              <Loader2 className="size-6 animate-spin text-brand" aria-hidden />
             </div>
-          ))}
-        </CardContent>
+          </div>
+          <div className="grid content-center gap-3 p-6">
+            <Badge variant="brand" className="w-fit">
+              {running ? "Analisando" : "Na fila"}
+            </Badge>
+            <p className="text-xl font-semibold tracking-tight">
+              {scan?.document.filename ? `Analisando ${scan.document.filename}` : "Analisando documento..."}
+            </p>
+            <p className="text-muted-foreground">
+              Verificando texto oculto, caracteres invisíveis, instruções para IA e dados sensíveis.
+            </p>
+          </div>
+        </div>
       </Card>
+      <div className="grid gap-3">
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} className="h-20 w-full" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScanError({ title, message }: { title: string; message: string }) {
+  return (
+    <div className="grid max-w-xl gap-6">
+      <BackLink />
+      <Alert variant="destructive">
+        <OctagonAlert />
+        <AlertTitle>{title}</AlertTitle>
+        <AlertDescription>{message}</AlertDescription>
+      </Alert>
     </div>
   );
 }
