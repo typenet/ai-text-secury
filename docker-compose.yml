@@ -7,9 +7,11 @@ x-logging: &logging
   driver: json-file
   options: { max-size: "10m", max-file: "5" }
 
+# api, worker e migrate usam a mesma imagem. Só o migrate tem "build": se os três
+# construíssem a mesma tag ao mesmo tempo, o "up --build" falharia (visto no Windows).
 x-backend: &backend
-  build: ./backend
   image: ai-text-secury-backend:${APP_VERSION:-local}
+  pull_policy: never # a imagem vem do build do migrate, não de um registry
   env_file:
     - path: .env
       required: false
@@ -85,6 +87,7 @@ services:
   # Roda uma vez a cada subida: migrações, catálogo de regras, bucket e API key inicial.
   migrate:
     <<: *backend
+    build: ./backend
     command: sh -c "alembic upgrade head && python -m app.cli setup"
     restart: "no"
 
